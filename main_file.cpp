@@ -31,6 +31,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "lodepng.h"
 #include "shaderprogram.h"
 
+#define SPEED 1
 
 //float speed = PI; //Prędkość kątowa obrotu obiektu
 float speed = 0; //Prędkość kątowa obrotu obiektu
@@ -43,8 +44,8 @@ static Models::Sphere moon2(0.07, 36, 36);
 void key_callback(GLFWwindow* window, int key,
 	int scancode, int action, int mods) {
 	if (action == GLFW_PRESS) {
-		if (key == GLFW_KEY_RIGHT) speed = 3.14;
-		if (key == GLFW_KEY_LEFT) speed = -3.14;
+		if (key == GLFW_KEY_RIGHT) speed = SPEED;
+		if (key == GLFW_KEY_LEFT) speed = -SPEED;
 	}
 	if (action == GLFW_RELEASE) {
 		if (key == GLFW_KEY_RIGHT) speed = 0;
@@ -88,12 +89,13 @@ void drawScene(GLFWwindow* window, float angle) {
 	glUniformMatrix4fv(spLambert->u("V"), 1, false, glm::value_ptr(V)); //Załadowanie macierzy widoku do programu cieniującego
 	
 	glm::mat4 MT = glm::mat4(1.0f);
+	MT = glm::rotate(MT, -PI / 6, glm::vec3(1.0f, 0.0f, 0.0f));
 	
 	for (int i = 0; i < 6; i++)
 	{
 		glm::mat4 MTi = MT;
-		MTi = glm::rotate(MTi, PI / 3 * i + PI / 6, glm::vec3(0.0f, 0.0f, 1.0f));
-		MTi = glm::translate(MTi, glm::vec3(0.0f, 1.0f, 0.0f));
+		MTi = glm::rotate(MTi, PI / 3 * i, glm::vec3(0.0f, 1.0f, 0.0f));
+		MTi = glm::translate(MTi, glm::vec3(0.0f, 0.0f, 1.0f));
 		MTi = glm::rotate(MTi, (i%2*2 - 1) * angle, glm::vec3(0.0f, 0.0f, 1.0f));
 		MTi = glm::scale(MTi, glm::vec3(0.5f, 0.5f, 0.5f));
 		glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MTi));  //Załadowanie macierzy modelu do programu cieniującego
