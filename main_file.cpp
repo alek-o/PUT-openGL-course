@@ -87,123 +87,31 @@ void drawScene(GLFWwindow* window, float angle) {
 	glUniformMatrix4fv(spLambert->u("P"), 1, false, glm::value_ptr(P)); //Załadowanie macierzy rzutowania do programu cieniującego
 	glUniformMatrix4fv(spLambert->u("V"), 1, false, glm::value_ptr(V)); //Załadowanie macierzy widoku do programu cieniującego
 	
-
-	glm::mat4 MT1 = glm::mat4(1.0f);
-	MT1 = glm::translate(MT1, glm::vec3(0.0f, 0.0f, 0.0f));
-	MT1 = glm::rotate(MT1, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-
-	//glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(M));  //Załadowanie macierzy modelu do programu cieniującego
-	//glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
-	glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MT1));  //Załadowanie macierzy modelu do programu cieniującego
-	glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
-	Models::torus.drawSolid();
-
-	for (int i = 0; i < 12; i++)
+	glm::mat4 MT = glm::mat4(1.0f);
+	
+	for (int i = 0; i < 6; i++)
 	{
-		glm:: mat4 MT1Ki = MT1;
-		MT1Ki = glm::rotate(MT1Ki, PI/6*i, glm::vec3(0.0f, 0.0f, 1.0f));
-		MT1Ki = glm::translate(MT1Ki, glm::vec3(0.0f, 1.0f, 0.0f));
-		MT1Ki = glm::scale(MT1Ki, glm::vec3(0.1f, 0.1f, 0.1f));
-		glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MT1Ki));  //Załadowanie macierzy modelu do programu cieniującego
+		glm::mat4 MTi = MT;
+		MTi = glm::rotate(MTi, PI / 3 * i + PI / 6, glm::vec3(0.0f, 0.0f, 1.0f));
+		MTi = glm::translate(MTi, glm::vec3(0.0f, 1.0f, 0.0f));
+		MTi = glm::rotate(MTi, (i%2*2 - 1) * angle, glm::vec3(0.0f, 0.0f, 1.0f));
+		MTi = glm::scale(MTi, glm::vec3(0.5f, 0.5f, 0.5f));
+		glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MTi));  //Załadowanie macierzy modelu do programu cieniującego
 		glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
-		Models::cube.drawSolid();
+		Models::torus.drawWire();
+
+		for (int j = 0; j < 12; j++)
+		{
+			glm::mat4 MT1Ki = MTi;
+			MT1Ki = glm::rotate(MT1Ki, PI / 6 * j + (i % 2)*PI/12, glm::vec3(0.0f, 0.0f, 1.0f));
+			MT1Ki = glm::translate(MT1Ki, glm::vec3(0.0f, 1.0f, 0.0f));
+			MT1Ki = glm::scale(MT1Ki, glm::vec3(0.1f, 0.1f, 0.1f));
+			glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MT1Ki));  //Załadowanie macierzy modelu do programu cieniującego
+			glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
+			Models::cube.drawSolid();
+		}
 	}
-
-	glm::mat4 MT2 = glm::mat4(1.0f);
-	MT2 = glm::translate(MT2, glm::vec3(-0.0f, 0.0f, 0.0f));
-	MT2 = glm::rotate(MT2, -angle, glm::vec3(0.0f, 0.0f, 1.0f));
-	MT2 = glm::scale(MT2, glm::vec3(0.4f, 0.4f, 0.4f));
-
-	//glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(M));  //Załadowanie macierzy modelu do programu cieniującego
-	//glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
-	glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MT2));  //Załadowanie macierzy modelu do programu cieniującego
-	glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
-	Models::torus.drawWire();
-
-	for (int i = 0; i < 12; i++)
-	{
-		glm::mat4 MT1Ki = MT2;
-		MT1Ki = glm::rotate(MT1Ki, PI / 6 * i + PI/11, glm::vec3(0.0f, 0.0f, 1.0f));
-		MT1Ki = glm::translate(MT1Ki, glm::vec3(0.0f, 1.0f, 0.0f));
-		MT1Ki = glm::scale(MT1Ki, glm::vec3(0.1f, 0.1f, 0.1f));
-		glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MT1Ki));  //Załadowanie macierzy modelu do programu cieniującego
-		glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
-		Models::cube.drawSolid();
-	}
-
-	// TORUS CO SIE KRYNCI W POZIOMIE
-	//glm::mat4 MT3 = glm::mat4(1.0f);
-	//MT3 = glm::rotate(MT3, PI/2, glm::vec3(1.0f, 0.0f, 0.0f));
-	//MT3 = glm::rotate(MT3, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-
-	////glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(M));  //Załadowanie macierzy modelu do programu cieniującego
-	////glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
-	//glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MT3));  //Załadowanie macierzy modelu do programu cieniującego
-	//glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
-	//Models::torus.drawWire();
-
-	/*
-	glm::mat4 P = glm::perspective(glm::radians(50.0f), 1.0f, 1.0f, 50.0f); //Wyliczenie macierzy rzutowania
-	glm::mat4 V = glm::lookAt(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)); //Wyliczenie macierzy widoku
-
-	spLambert->use();//Aktywacja programu cieniującego
-	glUniformMatrix4fv(spLambert->u("P"), 1, false, glm::value_ptr(P)); //Załadowanie macierzy rzutowania do programu cieniującego
-	glUniformMatrix4fv(spLambert->u("V"), 1, false, glm::value_ptr(V)); //Załadowanie macierzy widoku do programu cieniującego
-
-	//---Poniższy kawałek kodu powtarzamy dla każdego obiektu
-	//Obliczanie macierzy modelu
-	//glm::mat4 M = glm::mat4(1.0f);
-	//M = glm::rotate(M, angle, glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 MS = glm::mat4(1.0f);
-	//MS = glm::rotate(MS, angle, glm::vec3(0.0f, 1.0f, 0.0f));
-
-	//glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(M));  //Załadowanie macierzy modelu do programu cieniującego
-	//glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
-	glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MS));  //Załadowanie macierzy modelu do programu cieniującego
-	glUniform4f(spLambert->u("color"), 1.0f, 1.0f, 0.0f, 1.0f);
-	//Models::torus.drawSolid(); //Narysowanie obiektu
-	sun.drawSolid();
-
-
-	//---Poniższy kawałek kodu powtarzamy dla każdego obiektu
-	//Obliczanie macierzy modelu
-	//glm::mat4 M = glm::mat4(1.0f);
-	//M = glm::rotate(M, angle, glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 MP = MS;
-	MP = glm::rotate(MP, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-	MP = glm::translate(MP, glm::vec3(1.5f, 0.0f, 0.0f));
-
-	//glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(M));  //Załadowanie macierzy modelu do programu cieniującego
-	//glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
-	glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MP));  //Załadowanie macierzy modelu do programu cieniującego
-	glUniform4f(spLambert->u("color"), 0.0f, 1.0f, 0.0f, 1.0f);
-	//Models::torus.drawSolid(); //Narysowanie obiektu
-	planet1.drawSolid();
-
-
-	glm::mat4 MK = MP;
-	MK = glm::rotate(MK, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-	MK = glm::translate(MK, glm::vec3(0.5f, 0.0f, 0.0f));
-	glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MK));  //Załadowanie macierzy modelu do programu cieniującego
-	glUniform4f(spLambert->u("color"), 1.0f, 1.0f, 0.0f, 1.0f);
-	moon1.drawSolid();
-
-	glm::mat4 MP2 = MS;
-	MP2 = glm::rotate(MP2, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-	MP2 = glm::translate(MP2, glm::vec3(2.0f, 3.0f, 5.0f));
-	glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MP2));  //Załadowanie macierzy modelu do programu cieniującego
-	glUniform4f(spLambert->u("color"), 1.0f, 1.0f, 0.0f, 1.0f);
-	planet2.drawSolid();
-
-	glm::mat4 MK2 = MP2;
-	MK2 = glm::rotate(MK2, angle, glm::vec3(1.0f, 0.0f, 0.0f));
-	MK2 = glm::translate(MK2, glm::vec3(0.0f, 0.0f, 0.3f));
-	glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MK2));  //Załadowanie macierzy modelu do programu cieniującego
-	glUniform4f(spLambert->u("color"), 1.0f, 1.0f, 0.0f, 1.0f);
-	moon2.drawSolid();
-	*/
-
-
+	
 	//Skopiowanie bufora ukrytego do widocznego. Z reguły ostatnie polecenie w procedurze drawScene.
 	glfwSwapBuffers(window);
 }
