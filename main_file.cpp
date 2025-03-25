@@ -32,14 +32,17 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "shaderprogram.h"
 
 #define SPEED 1
+#define TURN_SPEED 1
 
 //float speed = PI; //Prędkość kątowa obrotu obiektu
 float speed = 0; //Prędkość kątowa obrotu obiektu
+float turn = 0;
 static Models::Sphere sun(0.5, 36, 36);
 static Models::Sphere planet1(0.2, 36, 36);
 static Models::Sphere moon1(0.1, 36, 36);
 static Models::Sphere planet2(0.25, 36, 36);
 static Models::Sphere moon2(0.07, 36, 36);
+static Models::Torus kolo(0.3, 0.1, 12, 12);
 
 void key_callback(GLFWwindow* window, int key,
 	int scancode, int action, int mods) {
@@ -50,6 +53,15 @@ void key_callback(GLFWwindow* window, int key,
 	if (action == GLFW_RELEASE) {
 		if (key == GLFW_KEY_RIGHT) speed = 0;
 		if (key == GLFW_KEY_LEFT) speed = 0;
+	}
+
+	if (action == GLFW_PRESS) {
+		if (key == GLFW_KEY_A) turn = 1;
+		if (key == GLFW_KEY_D) turn = -1;
+	}
+	if (action == GLFW_RELEASE) {
+		if (key == GLFW_KEY_A) turn = 0;
+		if (key == GLFW_KEY_D) turn = 0;
 	}
 }
 
@@ -76,7 +88,7 @@ void freeOpenGLProgram(GLFWwindow* window) {
 }
 
 //Procedura rysująca zawartość sceny
-void drawScene(GLFWwindow* window, float angle) {
+void drawScene(GLFWwindow* window, float angle, float wheel_angle) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Wyczyszczenie bufora kolorów i bufora głębokości
 
@@ -88,31 +100,46 @@ void drawScene(GLFWwindow* window, float angle) {
 	glUniformMatrix4fv(spLambert->u("P"), 1, false, glm::value_ptr(P)); //Załadowanie macierzy rzutowania do programu cieniującego
 	glUniformMatrix4fv(spLambert->u("V"), 1, false, glm::value_ptr(V)); //Załadowanie macierzy widoku do programu cieniującego
 	
-	glm::mat4 MT = glm::mat4(1.0f);
-	MT = glm::rotate(MT, -PI / 6, glm::vec3(1.0f, 0.0f, 0.0f));
+	glm::mat4 MS = glm::mat4(1.0f); // Macierz samochodu
+	MS = glm::rotate(MS, angle, glm::vec3(0.0f, 1.0f, 0.0f));
 	
-	for (int i = 0; i < 6; i++)
-	{
-		glm::mat4 MTi = MT;
-		MTi = glm::rotate(MTi, PI / 3 * i, glm::vec3(0.0f, 1.0f, 0.0f));
-		MTi = glm::translate(MTi, glm::vec3(0.0f, 0.0f, 1.0f));
-		MTi = glm::rotate(MTi, (i%2*2 - 1) * angle, glm::vec3(0.0f, 0.0f, 1.0f));
-		MTi = glm::scale(MTi, glm::vec3(0.5f, 0.5f, 0.5f));
-		glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MTi));  //Załadowanie macierzy modelu do programu cieniującego
-		glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
-		Models::torus.drawWire();
+	glm::mat4 MP = MS; // Macierz podłoża
+	MP = glm::translate(MP, glm::vec3(0.0f, 0.0f, 0.0f));
+	MP = glm::scale(MP, glm::vec3(1.5f, 0.3f, 1.0f));
+	glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MP));  //Załadowanie macierzy modelu do programu cieniującego
+	glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
+	Models::cube.drawSolid();
 
-		for (int j = 0; j < 12; j++)
-		{
-			glm::mat4 MT1Ki = MTi;
-			MT1Ki = glm::rotate(MT1Ki, PI / 6 * j + (i % 2)*PI/12, glm::vec3(0.0f, 0.0f, 1.0f));
-			MT1Ki = glm::translate(MT1Ki, glm::vec3(0.0f, 1.0f, 0.0f));
-			MT1Ki = glm::scale(MT1Ki, glm::vec3(0.1f, 0.1f, 0.1f));
-			glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MT1Ki));  //Załadowanie macierzy modelu do programu cieniującego
-			glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
-			Models::cube.drawSolid();
-		}
-	}
+	glm::mat4 MK1 = MS; // Macierz koła
+	MK1 = glm::translate(MK1, glm::vec3(1.5f, 0.0f, 1.0f));
+	MK1 = glm::rotate(MK1, turn, glm::vec3(0.0f, 1.0f, 0.0f));
+	MK1 = glm::rotate(MK1, wheel_angle, glm::vec3(0.0f, 0.0f, -1.0f));
+	glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MK1));  //Załadowanie macierzy modelu do programu cieniującego
+	glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
+	kolo.drawWire();
+
+	glm::mat4 MK2 = MS; // Macierz koła
+	MK2 = glm::translate(MK2, glm::vec3(1.5f, 0.0f, -1.0f));
+	MK2 = glm::rotate(MK2, turn, glm::vec3(0.0f, 1.0f, 0.0f));
+	MK2 = glm::rotate(MK2, wheel_angle, glm::vec3(0.0f, 0.0f, -1.0f));
+	glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MK2));  //Załadowanie macierzy modelu do programu cieniującego
+	glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
+	kolo.drawWire();
+
+	glm::mat4 MK3 = MS; // Macierz koła
+	MK3 = glm::translate(MK3, glm::vec3(-1.5f, 0.0f, 1.0f));
+	MK3 = glm::rotate(MK3, wheel_angle, glm::vec3(0.0f, 0.0f, -1.0f));
+	glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MK3));  //Załadowanie macierzy modelu do programu cieniującego
+	glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
+	kolo.drawSolid();
+
+	glm::mat4 MK4 = MS; // Macierz koła
+	MK4 = glm::translate(MK4, glm::vec3(-1.5f, 0.0f, -1.0f));
+	MK4 = glm::rotate(MK4, wheel_angle, glm::vec3(0.0f, 0.0f, -1.0f));
+	glUniformMatrix4fv(spLambert->u("M"), 1, false, glm::value_ptr(MK4));  //Załadowanie macierzy modelu do programu cieniującego
+	glUniform4f(spLambert->u("color"), 0.3f, 0.0f, 0.3f, 1.0f);
+	kolo.drawSolid();
+
 	
 	//Skopiowanie bufora ukrytego do widocznego. Z reguły ostatnie polecenie w procedurze drawScene.
 	glfwSwapBuffers(window);
@@ -151,14 +178,17 @@ int main(void)
 
 
 	float angle = 0; //Aktualny kąt obrotu obiektu
+	float wheel_angle = 0;
 	glfwSetTime(0); //Wyzeruj timer
 	//Główna pętla
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
 	{
+		wheel_angle += TURN_SPEED * glfwGetTime();
 		angle += speed * glfwGetTime(); //Oblicz przyrost kąta po obrocie
 		glfwSetTime(0); //Wyzeruj timer
-		drawScene(window, angle); //Wykonaj procedurę rysującą
+		drawScene(window, angle, wheel_angle); //Wykonaj procedurę rysującą
 		glfwPollEvents(); //Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.
+
 	}
 
 	freeOpenGLProgram(window);
